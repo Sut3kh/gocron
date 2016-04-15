@@ -10,15 +10,17 @@ import (
 )
 
 type CronTask struct {
+  name string
   Timer string
   Commands []string
 }
 
 /**
-* Run an array of shell commands.
+* Execute a CronTask.
 **/
-func run_cmds(cmds []string) {
-  for _, cmd := range cmds {
+func run_cmds(crontask CronTask) {
+  log.Printf("------Running %s------\n", crontask.name)
+  for _, cmd := range crontask.Commands {
     out, err := exec.Command("sh", "-c", cmd).Output()
     if err != nil {
       log.Fatalf("error: failed to run %s: %v", cmd, err)
@@ -28,6 +30,8 @@ func run_cmds(cmds []string) {
 }
 
 func main() {
+  log.Println("Starting gocron")
+
   // look for cronfiles in /etc/gocron.d
   crondir := "/etc/gocron.d"
   files, _ := ioutil.ReadDir(crondir)
@@ -42,6 +46,7 @@ func main() {
   for _, f := range files {
     // try and read file
     crontask := CronTask{}
+    crontask.name = f.Name()
     file, err := ioutil.ReadFile(crondir + "/" + f.Name())
     if err != nil {
       log.Fatalf("error: cannot read %s: %v", f.Name(), err)
@@ -54,16 +59,13 @@ func main() {
     }
 
     // add tasks
-    c.AddFunc(crontask.Timer, func() {
-      log.Printf("\n------Running %s------\n", f.Name())
-      run_cmds(crontask.Commands)
-    })
+    c.AddFunc(crontask.Timer, func() { run_cmds(crontask) })
   }
 
   // run crons
   c.Start()
   defer c.Stop()
-  log.Println("Started gocron")
+  log.Printf("loaded %d cron task(s)\n\n", len(files))
 
   // run forever
   select {}
