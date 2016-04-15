@@ -1,0 +1,11 @@
+##
+# example cron task
+# see https://godoc.org/github.com/robfig/cron for timer formats
+# NOTE: chaining commands with && does not work
+##
+
+#      # m h dom mon dow
+timer: 0 * * *   *   *
+commands:
+  - touch /tmp/crontest
+  - date >> /tmp/crontest
