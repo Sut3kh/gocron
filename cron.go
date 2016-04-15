@@ -22,10 +22,10 @@ func run_cmds(crontask CronTask) {
   log.Printf("------Running %s------\n", crontask.name)
   for _, cmd := range crontask.Commands {
     out, err := exec.Command("sh", "-c", cmd).Output()
-    if err != nil {
-      log.Fatalf("error: failed to run %s: %v", cmd, err)
-    }
     log.Printf("%s: %s\n", cmd, out)
+    if err != nil {
+      log.Printf("error: command returned a non 0 exit status: %v %s", cmd, err)
+    }
   }
 }
 
